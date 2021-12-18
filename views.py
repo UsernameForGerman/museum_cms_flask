@@ -67,14 +67,14 @@ def person_create():
     death = input.pop('death', None)
     countries = flask.request.form.getlist('countries')
     exhibits = flask.request.form.getlist('exhibits')
-    input.pop('countries')
-    input.pop('exhibits')
+    input.pop('countries', None)
+    input.pop('exhibits', None)
     person = models.Person(
         id=db.generate_new_id_for_model(models.Person),
         **input
     )
     if death:
-        if input['birth_date'] >= death:
+        if dt.datetime.fromisoformat(input['birth_date']) >= death:
             raise app.exceptions.BadRequest("Невалидная дата")
         death = models.Death(
             id=person.id,
@@ -104,7 +104,7 @@ def exhibits_create():
         raise app.exceptions.BadRequest("Невалидная дата")
 
     persons = flask.request.form.getlist('persons')
-    input.pop('persons')
+    input.pop('persons', None)
     exhibit = models.Exhibit(
         id=db.generate_new_id_for_model(models.Exhibit),
         **input
