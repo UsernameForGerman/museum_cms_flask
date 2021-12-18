@@ -1,0 +1,41 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}Добавление деятеля{% endblock %}
+{% block content %}
+<!-- The form action and method correspond to a Flask route -->
+<form action="/persons/create/" method="POST">
+  <div class="form-group">
+    <label for="name">Имя*</label>
+    <input type="text" class="form-control" id="name" name="name" required placeholder="Иван">
+  </div>
+  <div class="form-group">
+    <label for="birth_date">Дата рождения*</label>
+    <input type="date" class="form-control" id="birth_date" required name="birth_date">
+  </div>
+    <div class="form-group">
+    <label for="death">Дата смерти (если есть)</label>
+    <input type="date" class="form-control" id="death" name="death">
+  </div>
+  <div>
+    <div class="form-group">
+    <label for="countries">Страны*</label>
+    <select name="countries" id="countries" multiple required>
+      {% for country in countries %}
+      <option value="{{ country.id }}">{{ country.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <div class="form-group">
+    <label for="exhibits">Произведения искуства</label>
+    <select name="exhibits" id="exhibits" multiple>
+      {% for exhibit in exhibits %}
+      <option value="{{ exhibit.id }}">{{ exhibit.title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <input type="submit" value="Создать" class="btn btn-primary"/>
+</form>
+
+
+
+{%  endblock %}

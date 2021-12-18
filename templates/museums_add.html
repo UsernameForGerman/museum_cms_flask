@@ -1,0 +1,27 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}Добавление работы{% endblock %}
+{% block content %}
+<!-- The form action and method correspond to a Flask route -->
+<form action="/museums/create/" method="POST">
+  <div class="form-group">
+    <label for="name">Название*</label>
+    <input type="text" class="form-control" id="name" name="name" required>
+  </div>
+  <div class="form-group">
+    <label for="foundation_date">Дата основания*</label>
+    <input type="date" class="form-control" id="foundation_date" required name="foundation_date">
+  <div>
+    <div class="form-group">
+    <label for="city_id">Город*</label>
+    <select name="city_id" id="city_id" required>
+      {% for city in cities %}
+      <option value="{{ city.id }}">{{ city.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <input type="submit" value="Создать" class="btn btn-primary"/>
+</form>
+
+
+
+{%  endblock %}

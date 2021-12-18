@@ -1,0 +1,31 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}{{ museum.name }}{% endblock %}
+
+{% block content %}
+<h1>
+    Информация о музее {{ museum.name }}
+</h1>
+<p>Дата основания: {{ museum.foundation_date }}</p>
+<p>{{ city.name }} ({{ country.name }})</p>
+
+{% if exhibits %}
+<h3>
+    Экспонаты
+</h3>
+<table class="table table-bordered border-primary">
+  <thead>
+    <tr>
+        <th bgcolor="aqua"> Название </th>
+    </tr>
+  </thead>
+  <tbody>
+        {% for exhibit in exhibits %}
+            <tr>
+                <th> {{ exhibit.title }} </th>
+            </tr>
+        {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

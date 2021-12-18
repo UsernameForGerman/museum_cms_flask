@@ -1,0 +1,50 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}Авторы{% endblock %}
+{% block styles %}
+{{super()}}
+<style>
+    div.scrollable {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: scroll;
+}
+</style>
+{% endblock %}
+{% block content %}
+<h1>Все произведения искуства
+    <a href="/exhibits/create">
+        <button type="button" class="btn btn-primary">Добавить</button>
+    </a>
+    <a href="/museums">
+        <button type="button" class="btn btn-primary">Музеи</button>
+    </a>
+    <a href="/persons">
+        <button type="button" class="btn btn-primary">Деятели</button>
+    </a>
+</h1>
+<table class="table table-hover">
+  <thead class="thead-dark">
+    <tr>
+        <th bgcolor="aqua"> Название </th>
+        <th bgcolor="aqua"> Тип </th>
+        <th bgcolor="aqua"> Автор </th>
+        <th bgcolor="aqua"> Дата создания </th>
+        <th bgcolor="aqua"> Музей </th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for exhibit in exhibits %}
+    <tr>
+        <td> {{ exhibit.exhibit.title }} </td>
+        <td> {{ exhibit.exhibit.type }} </td>
+        <td> {% for person in exhibit.persons %} <a href="/persons/{{ person.id }}" target="_blank">{{ person.name }}</a>, {% endfor %} </td>
+        <td> {{ exhibit.exhibit.release_date }} </td>
+        <td> <a href="/museums/{{ exhibit.museum.id }}" target="_blank">{{ exhibit.museum.name }}</a> </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

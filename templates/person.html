@@ -1,0 +1,53 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}{{ person.name }}{% endblock %}
+
+{% block content %}
+<h1>
+    Информация о деятеле {{ person.name }}
+</h1>
+<p>Дата рождения: {{ person.birth_date }}</p>
+{% if death %}
+    <p>Дата смерти: {{ person.death }}</p>
+{% endif %}
+<h3>
+    Страны деятеля
+</h3>
+<table class="table table-bordered border-primary">
+  <thead>
+    <tr>
+        <th bgcolor="aqua"> Название </th>
+    </tr>
+  </thead>
+  <tbody>
+        {% for country in countries %}
+            <tr>
+                <th> {{ country.name }} </th>
+            </tr>
+        {% endfor %}
+  </tbody>
+</table>
+
+{% if exhibits %}
+<h3>
+    Произведения искуства деятеля
+</h3>
+
+<table class="table table-bordered border-primary">
+  <thead>
+    <tr>
+        <th bgcolor="aqua"> Название </th>
+    </tr>
+  </thead>
+  <tbody>
+        {% for exhibit in exhibits %}
+            <tr>
+                <th> {{ exhibit.title }} </th>
+            </tr>
+        {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+
+
+{% endblock %}
