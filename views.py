@@ -74,7 +74,7 @@ def person_create():
         **input
     )
     if death:
-        if dt.datetime.fromisoformat(input['birth_date']) >= death:
+        if dt.datetime.fromisoformat(input['birth_date']) >= dt.datetime.fromisoformat(death):
             raise app.exceptions.BadRequest("Невалидная дата")
         death = models.Death(
             id=person.id,
