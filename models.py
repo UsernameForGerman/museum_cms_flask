@@ -27,12 +27,19 @@ class Country:
 
 
 @dc.dataclass
+class Type:
+    __tablename__ = 'type'
+    id: int
+    name: str
+
+
+@dc.dataclass
 class Exhibit:
     __tablename__ = 'exhibit'
     id: int
     release_date: str
     title: str
-    type: str
+    type_id: int
     museum_id: int
 
 

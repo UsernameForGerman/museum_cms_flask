@@ -12,7 +12,7 @@ def get_museums() -> tp.List[models.Museum]:
         return [models.Museum(*raw_museum) for raw_museum in raw_museums]
 
 
-def get_museum_by_id(id: int) -> tp.Dict[str, tp.Union[models.Museum, models.City, models.Country, tp.List[models.Exhibit]]]:
+def get_museum_by_id(id: int) -> tp.Dict[str, tp.Union[models.Museum, models.City, models.Country, tp.List[tp.Dict[str, tp.Union[models.Exhibit, models.Type]]]]]:
     with app.sqlite3.connect(app.DBNAME) as conn:
         cursor = conn.cursor()
         museums = cursor.execute("""
@@ -29,8 +29,10 @@ def get_museum_by_id(id: int) -> tp.Dict[str, tp.Union[models.Museum, models.Cit
             e.id,
             e.release_date,
             e.title,
-            e.type,
-            e.museum_id
+            e.type_id,
+            e.museum_id,
+            t.id,
+            t.name
         FROM museum m
         INNER JOIN city ci
             ON m.city_id = ci.id
@@ -38,6 +40,8 @@ def get_museum_by_id(id: int) -> tp.Dict[str, tp.Union[models.Museum, models.Cit
             ON ci.country_id = co.id
         LEFT JOIN exhibit e
             ON e.museum_id = m.id
+        LEFT JOIN type t
+            ON e.type_id = t.id
         WHERE m.id = ?;
         """, [id]).fetchall()
         if not museums:
@@ -48,11 +52,15 @@ def get_museum_by_id(id: int) -> tp.Dict[str, tp.Union[models.Museum, models.Cit
                 id=museum[9],
                 release_date=museum[10],
                 title=museum[11],
-                type=museum[12],
+                type_id=museum[12],
                 museum_id=museum[13]
             ) if museum[9] is not None else None
             if exhibit and exhibit not in exhibits:
-                exhibits.append(exhibit)
+                type = models.Type(
+                    id=museum[14],
+                    name=museum[15]
+                )
+                exhibits.append({'exhibit': exhibit, 'type': type})
         return {
             'museum': models.Museum(id=museums[0][0], name=museums[0][1], foundation_date=museums[0][2], city_id=museums[0][3]),
             'city': models.City(id=museums[0][4], name=museums[0][5], country_id=museums[0][6]),
@@ -68,7 +76,7 @@ def get_persons() -> tp.List[models.Person]:
         return [models.Person(*raw_person) for raw_person in raw_persons]
 
 
-def get_person_by_id(id: int) -> tp.Dict[str, tp.Union[models.Person, models.Death, tp.List[tp.Union[models.Country, models.Exhibit]]]]:
+def get_person_by_id(id: int) -> tp.Dict[str, tp.Union[models.Person, models.Death, tp.List[tp.Union[models.Country, tp.Dict[str, tp.Union[models.Exhibit, models.Type]]]]]]:
     with app.sqlite3.connect(app.DBNAME) as conn:
         cursor = conn.cursor()
         persons = cursor.execute("""
@@ -83,8 +91,10 @@ def get_person_by_id(id: int) -> tp.Dict[str, tp.Union[models.Person, models.Dea
             e.id,
             e.release_date,
             e.title,
-            e.type,
-            e.museum_id
+            e.type_id,
+            e.museum_id,
+            t.id,
+            t.name
         FROM person p
         LEFT JOIN death d
             ON p.id = d.id
@@ -92,10 +102,12 @@ def get_person_by_id(id: int) -> tp.Dict[str, tp.Union[models.Person, models.Dea
             ON ctp.person_id = p.id
         INNER JOIN country c
             ON c.id = ctp.country_id
-        INNER JOIN person_to_exhibit pte
+        LEFT JOIN person_to_exhibit pte
             ON pte.person_id = p.id
-        INNER JOIN exhibit e
+        LEFT JOIN exhibit e
             ON e.id = pte.exhibit_id
+        LEFT JOIN type t
+            ON e.type_id = t.id
         WHERE p.id = ?;
         """, [id]).fetchall()
         if not persons:
@@ -112,14 +124,15 @@ def get_person_by_id(id: int) -> tp.Dict[str, tp.Union[models.Person, models.Dea
                 id=person[7],
                 release_date=person[8],
                 title=person[9],
-                type=person[10],
+                type_id=person[10],
                 museum_id=person[11]
             ) if person[7] is not None else None
             if exhibit and exhibit not in exhibits:
-                exhibits.append(exhibit)
+                type = models.Type(id=person[12], name=person[13])
+                exhibits.append({'exhibit': exhibit, 'type': type})
         return {
             'person': models.Person(id=persons[0][0], name=persons[0][1], birth_date=persons[0][2]),
-            'death': models.Death(id=persons[0][3], death=persons[0][4]),
+            'death': models.Death(id=persons[0][3], death=persons[0][4]) if persons[0][3] is not None else None,
             'countries': countries,
             'exhibits': exhibits
         }
@@ -133,7 +146,7 @@ def get_exhibits_full_info() -> tp.List[tp.Dict[str, tp.Union[models.Exhibit, mo
             e.id, 
             e.release_date,
             e.title,
-            e.type,
+            e.type_id,
             e.museum_id,
             p.id,
             p.name,
@@ -141,8 +154,12 @@ def get_exhibits_full_info() -> tp.List[tp.Dict[str, tp.Union[models.Exhibit, mo
             m.id,
             m.name,
             m.foundation_date,
-            m.city_id
+            m.city_id,
+            t.id,
+            t.name
         FROM exhibit e
+        INNER JOIN type t
+            ON e.type_id = t.id
         LEFT JOIN person_to_exhibit pte
             ON pte.exhibit_id = e.id
         LEFT JOIN person p
@@ -163,8 +180,12 @@ def get_exhibits_full_info() -> tp.List[tp.Dict[str, tp.Union[models.Exhibit, mo
                         id=exhibit[0],
                         release_date=exhibit[1],
                         title=exhibit[2],
-                        type=exhibit[3],
+                        type_id=exhibit[3],
                         museum_id=exhibit[4],
+                    ),
+                    'type': models.Type(
+                        id=exhibit[12],
+                        name=exhibit[13]
                     )
                 })
                 exhibit_result.update({
@@ -253,9 +274,9 @@ def insert_exhibit(exhibit: models.Exhibit, persons: tp.List[str]):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO exhibit (id, release_date, title, type, museum_id)
+            INSERT INTO exhibit (id, release_date, title, type_id, museum_id)
             VALUES (?, ?, ?, ?, ?);
-            """, [exhibit.id, exhibit.release_date, exhibit.title, exhibit.type, exhibit.museum_id]
+            """, [exhibit.id, exhibit.release_date, exhibit.title, exhibit.type_id, exhibit.museum_id]
         )
         cursor.executemany(
             """
@@ -264,65 +285,6 @@ def insert_exhibit(exhibit: models.Exhibit, persons: tp.List[str]):
             """,
             [(person_id, exhibit.id) for person_id in persons]
         )
-
-
-# def insert_author(author: models.Author, death: tp.Optional[models.Death], countries: tp.List[str], works: tp.List[str]):
-#     with app.sqlite3.connect(app.DBNAME) as conn:
-#         cursor = conn.cursor()
-#         cursor.execute(
-#             """
-#             INSERT INTO author (id, name, birth_date)
-#             VALUES (?, ?, ?);
-#             """, [author.id, author.name, author.birth_date]
-#         )
-#         if death:
-#             cursor.execute(
-#                 """
-#                 INSERT INTO death (id, death)
-#                 VALUES (?, ?)
-#                 """, [death.id, death.death]
-#             )
-#         cursor.executemany(
-#             """
-#             INSERT INTO country_to_author(country_id, author_id)
-#             VALUES (?, ?)
-#             """,
-#             [(country_id, author.id) for country_id in countries]
-#         )
-#         if works:
-#             cursor.executemany(
-#                 """
-#                 INSERT INTO author_to_work(author_id, work_id)
-#                 VALUES (?, ?)
-#                 """,
-#                 [(author.id, work_id) for work_id in works]
-#             )
-#
-#
-# def insert_work(work: models.Work, countries: tp.List[str], authors: tp.List[str]):
-#     with app.sqlite3.connect(app.DBNAME) as conn:
-#         cursor = conn.cursor()
-#         cursor.execute(
-#             """
-#             INSERT INTO work (id, title, release_date, type)
-#             VALUES (?, ?, ?, ?);
-#             """, [work.id, work.title, work.release_date, work.type]
-#         )
-#         cursor.executemany(
-#             """
-#             INSERT INTO country_to_work(country_id, work_id)
-#             VALUES (?, ?)
-#             """,
-#             [(country_id, work.id) for country_id in countries]
-#         )
-#         if authors:
-#             cursor.executemany(
-#                 """
-#                 INSERT INTO author_to_work(author_id, work_id)
-#                 VALUES (?, ?)
-#                 """,
-#                 [(author_id, work.id) for author_id in authors]
-#             )
 
 
 def get_countries() -> tp.List[models.Country]:
@@ -341,5 +303,15 @@ def get_cities() -> tp.List[models.City]:
         return [models.City(*city) for city in cursor.execute(
             """
             SELECT * FROM city;
+            """
+        )]
+
+
+def get_types() -> tp.List[models.Type]:
+    with app.sqlite3.connect(app.DBNAME) as conn:
+        cursor = conn.cursor()
+        return [models.Type(*type) for type in cursor.execute(
+            """
+            SELECT * FROM type;
             """
         )]

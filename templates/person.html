@@ -7,7 +7,7 @@
 </h1>
 <p>Дата рождения: {{ person.birth_date }}</p>
 {% if death %}
-    <p>Дата смерти: {{ person.death }}</p>
+    <p>Дата смерти: {{ death.death }}</p>
 {% endif %}
 <h3>
     Страны деятеля
@@ -41,7 +41,7 @@
   <tbody>
         {% for exhibit in exhibits %}
             <tr>
-                <th> {{ exhibit.title }} </th>
+                <th> {{ exhibit.exhibit.title }} ({{ exhibit.type.name }}) </th>
             </tr>
         {% endfor %}
   </tbody>

@@ -38,7 +38,7 @@
   {% for exhibit in exhibits %}
     <tr>
         <td> {{ exhibit.exhibit.title }} </td>
-        <td> {{ exhibit.exhibit.type }} </td>
+        <td> {{ exhibit.type.name }} </td>
         <td> {% for person in exhibit.persons %} <a href="/persons/{{ person.id }}" target="_blank">{{ person.name }}</a>, {% endfor %} </td>
         <td> {{ exhibit.exhibit.release_date }} </td>
         <td> <a href="/museums/{{ exhibit.museum.id }}" target="_blank">{{ exhibit.museum.name }}</a> </td>

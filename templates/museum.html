@@ -21,7 +21,7 @@
   <tbody>
         {% for exhibit in exhibits %}
             <tr>
-                <th> {{ exhibit.title }} </th>
+                <th> {{ exhibit.exhibit.title }} ({{ exhibit.type.name }})</th>
             </tr>
         {% endfor %}
   </tbody>

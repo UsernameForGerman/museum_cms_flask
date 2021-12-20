@@ -24,7 +24,7 @@ def prepare_db():
         """
         CREATE TABLE IF NOT EXISTS city(
             id INTEGER UNIQUE NOT NULL PRIMARY KEY,
-            name TEXT,
+            name TEXT NOT NULL,
             country_id INTEGER NOT NULL,
             FOREIGN KEY (country_id) REFERENCES country(id) ON DELETE CASCADE
         );
@@ -39,13 +39,20 @@ def prepare_db():
         );
         """,
         """
+        CREATE TABLE IF NOT EXISTS type(
+            id INTEGER UNIQUE NOT NULL PRIMARY KEY,
+            name TEXT NOT NULL
+        );
+        """,
+        """
         CREATE TABLE IF NOT EXISTS exhibit(
             id INTEGER UNIQUE NOT NULL PRIMARY KEY,
             release_date TEXT NOT NULL,
             title TEXT NOT NULL,
-            type TEXT NOT NULL,
+            type_id INTEGER NOT NULL,
             museum_id INTEGER NOT NULL,
-            FOREIGN KEY (museum_id) REFERENCES museum(id) ON DELETE CASCADE
+            FOREIGN KEY (museum_id) REFERENCES museum(id) ON DELETE CASCADE,
+            FOREIGN KEY (type_id) REFERENCES type(id) ON DELETE CASCADE
         );
         """,
         """
@@ -105,6 +112,10 @@ def prepare_db():
         """
         CREATE INDEX IF NOT EXISTS exhibit_museum_id_idx
         ON exhibit(museum_id);
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS exhibit_type_id_idx
+        ON exhibit(type_id);
         """
     ]
     for statement in statements:

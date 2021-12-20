@@ -97,7 +97,8 @@ def exhibits_create():
     if flask.request.method == 'GET':
         museums = db.get_museums()
         persons = db.get_persons()
-        return flask.render_template('exhibits_add.html', museums=museums, persons=persons)
+        types = db.get_types()
+        return flask.render_template('exhibits_add.html', museums=museums, persons=persons, types=types)
 
     input = dict(**flask.request.form)
     if dt.datetime.fromisoformat(input['release_date']) > dt.datetime.now():
